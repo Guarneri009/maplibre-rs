@@ -1,0 +1,60 @@
+name: Build & Deploy
+
+on:
+  # We do not use a .lock file, as maplibre is a library. Therefore, build could potentially fail if new updates
+  # to dependencies are pushed. By building maplibre scheduled we get to know that.
+  schedule:
+    - cron:  '0 3 * * 5' # Run "At 03:00 on Friday"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-check:
+    uses: ./.github/workflows/run-checks.yml
+  run-benchmarks:
+    uses: ./.github/workflows/run-benchmarks.yml
+  run-tests:
+    uses: ./.github/workflows/run-tests.yml
+  build-deploy-docs:
+    uses: ./.github/workflows/build-deploy-docs.yml
+    with:
+      deploy: true
+    secrets: inherit
+  library-android:
+    uses: ./.github/workflows/library-android.yml
+  library-web-webgl:
+    uses: ./.github/workflows/library-web.yml
+    with:
+      name: maplibre-rs-demo-webgl
+      webgl: true
+      multithreaded: false
+      deploy: true
+    secrets: inherit
+  library-web-webgl-multithreaded:
+    uses: ./.github/workflows/library-web.yml
+    with:
+      name: maplibre-rs-demo-webgl-multithreaded
+      webgl: true
+      multithreaded: true
+      deploy: true
+    secrets: inherit
+  library-web-webgpu:
+    uses: ./.github/workflows/library-web.yml
+    with:
+      name: maplibre-rs-demo-webgpu
+      webgl: false
+      multithreaded: false
+      deploy: true
+    secrets: inherit
+  library-apple:
+    uses: ./.github/workflows/library-apple.yml
+  demo-linux:
+    uses: ./.github/workflows/demo-linux.yml
+  demo-windows:
+    uses: ./.github/workflows/demo-windows.yml
+  demo-macos:
+    uses: ./.github/workflows/demo-macos.yml
+    secrets: inherit
+

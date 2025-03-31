@@ -1,0 +1,73 @@
+plugins {
+    id 'org.mozilla.rust-android-gradle.rust-android' version '0.9.3' apply true
+    id 'com.android.library' version '7.2.0' apply true
+    id 'org.jetbrains.kotlin.android' version '1.7.20' apply true
+}
+
+apply plugin: 'kotlin-android'
+
+android {
+    // Also update NDK in library-android.yml
+    ndkVersion "27.2.12479018"
+
+    compileSdkVersion 31
+    
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 31
+
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    namespace 'org.maplibre_rs'
+}
+
+cargo {
+    module = "../../"
+    targets = ["arm64", "x86_64", "x86"]
+    libname = "maplibre_android"
+    targetDirectory = "${module}/../target"
+    profile = "debug"
+    // This should be in sync with the justfile
+    rustupChannel = "nightly-2024-07-22"
+    
+
+    features {
+        defaultAnd "foo", "bar"
+        noDefaultBut("foo", "bar")
+        all()
+    }
+}
+
+dependencies {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testImplementation 'junit:junit:4.13.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21"
+}
+
+tasks.whenTaskAdded { task ->
+    if ((task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders')) {
+        task.dependsOn 'cargoBuild'
+    }
+}
+
+afterEvaluate {
+    // The `cargoBuild` task isn't available until after evaluation.
+    android.libraryVariants.all { variant ->
+        def productFlavor = ""
+        variant.productFlavors.each {
+            productFlavor += "${it.name.capitalize()}"
+        }
+        def buildType = "${variant.buildType.name.capitalize()}"
+        tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
+    }
+}

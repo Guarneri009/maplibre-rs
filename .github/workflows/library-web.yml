@@ -1,0 +1,86 @@
+name: Build library for Web
+
+on:
+  workflow_call:
+    secrets:
+      CF_API_TOKEN:
+        required: false
+      CF_ACCOUNT_ID:
+        required: false
+    inputs:
+      deploy:
+        required: true
+        type: boolean
+      name:
+        required: true
+        type: string
+      webgl:
+        required: true
+        type: boolean
+      multithreaded:
+        required: true
+        type: boolean
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          nightly: true
+          targets: wasm32-unknown-unknown
+      - name: Install Dependencies
+        uses: ./.github/actions/install-system-dependencies
+      - name: Install flatbuffers
+        uses: ./.github/actions/install-flatbuffers
+      - name: Install wasm-bindgen
+        uses: ./.github/actions/cargo-install
+        # Install wasm-bindgen with test runner
+        # We want a specific, as Cargo uses a pinned version of wasm-bindgen as dependency of the web crate
+        with:
+          name: wasm-bindgen-cli@0.2.92
+      - name: Build lib
+        shell: bash
+        run: just web-lib build --release ${{ inputs.webgl && '--webgl' || '' }} ${{ inputs.multithreaded && '--multithreaded' || '' }}
+      - name: Build demo
+        shell: bash
+        run: just web-demo build
+      - name: Check # TODO: Also check here multithreaded configurations
+        shell: bash
+        run: just nightly-check web wasm32-unknown-unknown ${{ inputs.webgl && 'web-webgl' || '""' }}
+      - name: Test
+        shell: bash
+        run: just web-test "web-webgl"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.name }}
+          path: web/demo/dist/
+
+  deploy:
+    needs: [build]
+    if: inputs.deploy
+    name: Deploy
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.name }}
+          path: demo
+      - name: Set HTTP Headers for Cloudflare
+        if: inputs.multithreaded
+        shell: bash
+        run: |
+          echo "/*
+            Cross-Origin-Opener-Policy: same-origin
+            Cross-Origin-Embedder-Policy: require-corp" > demo/_headers
+      - name: Deploy
+        uses: ./.github/actions/cloudflare-deploy
+        with:
+          project: ${{ inputs.name }}
+          source: demo
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}

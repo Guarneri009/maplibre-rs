@@ -1,0 +1,39 @@
+{
+  "name": "maplibre-rs",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "clean": "rm -rf dist && rm -rf src/wasm-pack",
+    "build": "node build.mjs",
+    "build-webgl": "node build.mjs --webgl"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "module": "dist/esbuild-esm/module.js",
+  "main": "dist/esbuild-cjs/main.js",
+  "types": "dist/ts/index.d.ts",
+  "dependencies": {
+    "binaryen": "^118.0.0",
+    "spectorjs": "0.9.30",
+    "wasm-feature-detect": "^1.6.2"
+  },
+  "devDependencies": {
+    "@chialab/esbuild-plugin-meta-url": "^0.18.2",
+    "esbuild": "^0.19.12",
+    "esbuild-plugin-inline-worker": "^0.1.1",
+    "typescript": "^5.5.4",
+    "yargs": "^17.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maplibre/maplibre-rs"
+  },
+  "keywords": [
+    "wasm",
+    "webgpu",
+    "maps"
+  ],
+  "author": "",
+  "license": "MIT"
+}

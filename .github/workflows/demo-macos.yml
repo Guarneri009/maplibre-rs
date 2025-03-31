@@ -1,0 +1,31 @@
+name: Build demo for macOS
+
+on:
+  workflow_call:
+
+jobs:
+  demo-macos:
+    name: Build
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          targets: x86_64-apple-darwin
+      - name: Install Dependencies
+        uses: ./.github/actions/install-system-dependencies
+      - name: Build
+        shell: bash
+        run: cd apple/xcode && xcodebuild -scheme "example (macOS)" build CODE_SIGNING_ALLOWED=NO MACOSX_DEPLOYMENT_TARGET=10.9 -derivedDataPath build
+      - name: Check x86_64 darwin
+        shell: bash
+        run: just check maplibre-demo x86_64-apple-darwin
+      - name: Test x86_64 darwin
+        shell: bash
+        run: just test maplibre-demo x86_64-apple-darwin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maplibre-x86_64-apple-darwin-demo
+          path: apple/xcode/build/Build/Products/Debug/*.app
+          if-no-files-found: error

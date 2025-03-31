@@ -1,0 +1,64 @@
+name: Build documentation
+
+on:
+  workflow_call:
+    inputs:
+      deploy:
+        required: true
+        type: boolean
+
+
+jobs:
+  build-docs:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Install mdbook
+        uses: ./.github/actions/cargo-install
+        with:
+          name: mdbook
+      - name: Install Dependencies
+        uses: ./.github/actions/install-system-dependencies
+      - name: Build
+        working-directory: docs
+        shell: bash
+        run: |
+          ./generate-summary.sh
+          mdbook build
+      - name: API Documentation
+        shell: bash
+        run: cargo doc -p maplibre --no-deps --lib --document-private-items
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: target/doc/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: book
+          path: docs/book/
+  deploy-docs:
+    needs: build-docs
+    if: inputs.deploy
+    name: Deploy
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download api-docs
+        uses: actions/download-artifact@v4
+        with:
+          name: api-docs
+          path: artifacts/api
+      - name: Download book
+        uses: actions/download-artifact@v4
+        with:
+          name: book
+          path: artifacts/book
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.6.8
+        with:
+          branch: gh-pages
+          folder: artifacts
+          target-folder: docs

@@ -1,0 +1,60 @@
+[package]
+name = "web"
+version = "0.1.0"
+publish = false
+build = "build.rs"
+
+description.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+authors.workspace = true
+
+[features]
+web-webgl = ["maplibre/web-webgl"]
+trace = ["maplibre/trace", "tracing-wasm"]
+default = []
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+async-trait.workspace = true
+maplibre = { path = "../maplibre" }
+maplibre-winit = { path = "../maplibre-winit", version = "0.1.0" }
+
+getrandom = { version = "0.2.15", features = ["js"] }
+
+log.workspace = true
+rand.workspace = true
+
+thiserror.workspace = true
+
+console_error_panic_hook.workspace = true
+web-sys = { workspace = true, features = [
+    "Window",
+    "Worker", "WorkerGlobalScope", "DedicatedWorkerGlobalScope", "MessageEvent",
+    "Request", "RequestInit", "RequestMode", "Response", "Headers",
+    "ErrorEvent"
+] }
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+console_log.workspace = true
+tracing-wasm = { workspace = true, optional = true } # TODO: Low quality dependency (remove in a separate PR!)
+# For passing Inputs in AsyncProcedureCalls
+serde_json.workspace = true
+flatbuffers.workspace = true
+
+image.workspace = true # FIXME: Remove image, use browser capabilities
+
+[build-dependencies]
+flatc-rust.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test.workspace = true

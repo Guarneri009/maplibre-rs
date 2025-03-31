@@ -1,0 +1,32 @@
+[package]
+name = "maplibre-android" # Naming this "android" is not possible. Compilation fails.
+version = "0.1.0"
+publish = false
+
+description.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+authors.workspace = true
+
+[dependencies]
+maplibre = { path = "../maplibre", features = ["thread-safe-futures"] }
+maplibre-winit = { path = "../maplibre-winit", version = "0.1.0" }
+env_logger.workspace = true
+log.workspace = true
+android_logger.workspace = true
+jni.workspace = true
+
+[lib]
+#name = "maplibre_android" Currently not supported: https://github.com/rust-windowing/android-ndk-rs/issues/136
+crate-type = ["rlib", "cdylib"]
+
+[package.metadata.android]
+apk_name = "maplibre-rs-demo"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+[[package.metadata.android.uses_permission]]
+name = "android.permission.ACCESS_NETWORK_STATE"

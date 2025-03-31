@@ -1,0 +1,45 @@
+name: Build demo for Windows
+
+on:
+  workflow_call:
+
+jobs:
+  demo-windows:
+    name: Build
+    runs-on: windows-2022
+    steps:
+      - name: Switch to msys2
+        shell: powershell
+        run: |
+          echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install mysys2 dependencies
+        shell: powershell
+        run: pacman -S --noconfirm unzip
+      - name: Show PATH
+        shell: powershell
+        run: Write-Host $env:path
+      - name: Show bash PATH
+        shell: bash
+        run: echo $PATH
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          targets: x86_64-pc-windows-msvc
+      - name: Install Dependencies
+        uses: ./.github/actions/install-system-dependencies
+      - name: Build
+        shell: powershell
+        run: cargo build -p maplibre-demo --release --target x86_64-pc-windows-msvc
+      - name: Check x86_64 windows
+        shell: powershell
+        run: just check maplibre-demo x86_64-pc-windows-msvc
+      - name: Test x86_64 windows
+        shell: powershell
+        run: just test maplibre-demo x86_64-pc-windows-msvc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maplibre-x86_64-windows-demo
+          path: target/x86_64-pc-windows-msvc/release/maplibre-demo.exe
+          if-no-files-found: error

@@ -1,0 +1,16 @@
+name: Run checks
+
+on:
+  workflow_call:
+
+jobs:
+  run-checks:
+    name: Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Format
+        shell: bash
+        run: just fmt-check

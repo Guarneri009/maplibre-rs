@@ -1,0 +1,92 @@
+[package]
+name = "maplibre"
+version = "0.1.0"
+build = "build.rs"
+readme = "../README.md"
+
+description.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+authors.workspace = true
+
+[features]
+# FIXME tcs: Remove raster from default
+default = ["raster"]
+web-webgl = ["wgpu/webgl"]
+# Enable tracing using tracy on desktop/mobile and the chrome profiler on web
+trace = ["tracing-subscriber", "tracing-tracy"]
+thread-safe-futures = []
+embed-static-tiles = ["maplibre-build-tools/sqlite"]
+headless = ["png"]
+raster = ["image"]
+
+
+[target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "linux", target_os = "android", target_os = "windows"))'.dependencies]
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread", "sync", "time"] }
+tokio-util.workspace = true
+env_logger.workspace = true
+reqwest.workspace = true
+http-cache-reqwest.workspace = true
+reqwest-middleware.workspace = true
+tracing-tracy = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "android")'.dependencies]
+reqwest.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+instant.workspace = true
+
+# Tracing
+tracing.workspace = true
+tracing-subscriber = { workspace = true, optional = true }
+
+# Maths
+cgmath.workspace = true
+
+# Geo
+geo.workspace = true
+geo-types.workspace = true
+rstar.workspace = true
+geozero.workspace = true
+tile-grid.workspace = true
+
+# Rendering
+wgpu.workspace = true
+#wgpu = { git = "https://github.com/gfx-rs/wgpu.git", rev = "" }
+lyon.workspace = true
+
+# cached = "0.32"
+
+# Logging
+log.workspace = true
+
+# Utils
+bytemuck.workspace = true
+bytemuck_derive.workspace = true
+thiserror.workspace = true
+
+# Static tiles inclusion
+include_dir.workspace = true
+
+# JSON
+serde.workspace = true
+serde_json.workspace = true
+
+# Colors
+csscolorparser.workspace = true
+cint.workspace = true
+
+# Required by bevy renderer
+downcast-rs.workspace = true
+smallvec.workspace = true
+
+# Headless
+png = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+
+[build-dependencies]
+maplibre-build-tools = { path = "../maplibre-build-tools", version = "0.1.0" }
